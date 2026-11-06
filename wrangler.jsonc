@@ -1,0 +1,29 @@
+{
+  // NEXORA Digital Marketing — Cloudflare Worker configuration
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nexora-digital-marketing",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-01",
+
+  // Static site + admin dashboard served as Workers Static Assets.
+  // The Worker runs first on every request so it can serve /api/* and add security headers.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": true
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nexora-db",
+      "database_id": "82afcaa3-cde4-4026-a7ac-f1b908d79871",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "observability": { "enabled": true }
+
+  // No secrets are needed. Admin credentials live (hashed) in D1.
+}

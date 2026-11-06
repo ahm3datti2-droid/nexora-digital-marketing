@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#050b1f">
+  <title>لوحة تحكم NEXORA</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <!-- Auth screen (login / first-time setup) -->
+  <div class="auth" id="authView" hidden>
+    <form class="auth__card" id="authForm" novalidate>
+      <img src="/assets/icon-192.png" alt="" width="64" height="64">
+      <h1 id="authTitle">تسجيل الدخول</h1>
+      <p class="muted" id="authHint">لوحة تحكم NEXORA Digital Marketing</p>
+      <label id="codeField" hidden>كود الإعداد لمرة واحدة<input name="code" autocomplete="one-time-code" dir="ltr"></label>
+      <label>اسم المستخدم<input name="username" autocomplete="username" dir="ltr" required></label>
+      <label>كلمة المرور<input name="password" type="password" autocomplete="current-password" dir="ltr" required></label>
+      <label id="confirmField" hidden>تأكيد كلمة المرور<input name="confirm" type="password" autocomplete="new-password" dir="ltr"></label>
+      <button class="btn btn--primary" type="submit" id="authBtn">دخول</button>
+      <p class="msg" id="authMsg" role="alert"></p>
+      <a href="/" class="muted small">← الرجوع للموقع</a>
+    </form>
+  </div>
+
+  <!-- App -->
+  <div class="app" id="appView" hidden>
+    <aside class="side" id="side">
+      <div class="side__brand"><img src="/assets/icon-192.png" alt="" width="36" height="36"><b>NEXORA</b><small>Admin</small></div>
+      <nav class="side__nav" id="sideNav">
+        <a href="#/dashboard" data-route="dashboard">📊 الرئيسية</a>
+        <a href="#/leads" data-route="leads">📥 الطلبات <span class="badge" id="newBadge" hidden></span></a>
+        <a href="#/subscribers" data-route="subscribers">📧 المشتركين</a>
+        <a href="#/services" data-route="services">🧩 الخدمات</a>
+        <a href="#/portfolio" data-route="portfolio">🖼️ الأعمال</a>
+        <a href="#/packages" data-route="packages">💎 الباقات</a>
+        <a href="#/testimonials" data-route="testimonials">⭐ آراء العملاء</a>
+        <a href="#/faqs" data-route="faqs">❓ الأسئلة الشائعة</a>
+        <a href="#/settings" data-route="settings">⚙️ إعدادات الموقع</a>
+        <a href="#/account" data-route="account">🔐 الحساب</a>
+      </nav>
+      <div class="side__foot">
+        <a href="/" target="_blank" rel="noopener">🌐 عرض الموقع</a>
+        <button type="button" id="logoutBtn">🚪 تسجيل الخروج</button>
+      </div>
+    </aside>
+    <div class="backdrop" id="backdrop"></div>
+    <div class="main">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="القائمة">☰</button>
+        <h1 id="pageTitle">الرئيسية</h1>
+        <span class="muted small" id="whoami"></span>
+      </header>
+      <main class="content" id="content"></main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="modal" id="modal">
+    <form method="dialog" class="modal__box" id="modalForm" novalidate>
+      <header class="modal__head"><h2 id="modalTitle"></h2><button type="button" class="x" id="modalClose" aria-label="إغلاق">✕</button></header>
+      <div class="modal__body" id="modalBody"></div>
+      <footer class="modal__foot">
+        <button type="submit" class="btn btn--primary" id="modalSave">حفظ</button>
+        <button type="button" class="btn btn--ghost" id="modalCancel">إلغاء</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script src="/admin/admin.js" defer></script>
+</body>
+</html>
