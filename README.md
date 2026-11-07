@@ -1,6 +1,6 @@
 # NEXORA Digital Marketing
 
-موقع وكالة NEXORA للتسويق الرقمي + لوحة تحكم كاملة، مبني على **Cloudflare Workers + D1** بدون أي مكتبات خارجية.
+موقع وكالة NEXORA للتسويق الرقمي + لوحة تحكم كاملة، مبني على **Cloudflare Pages + D1** بدون أي مكتبات خارجية.
 
 > Beyond Digital. Beyond Limits.
 
@@ -39,10 +39,10 @@ wrangler.jsonc           ← إعدادات Cloudflare
 
 ## النشر
 
-متصل بـ Cloudflare Workers Builds: أي `push` على فرع `main` بيتنشر تلقائيًا.
+منشور على **Cloudflare Pages** (advanced mode): `npm run build` بيجهّز مجلد `dist` وفيه `_worker.js`. أي `push` على `main` بيتنشر تلقائيًا.
 قاعدة البيانات: D1 `nexora-db`.
 
-لإضافة جداول جديدة: ضيف ملف `migrations/0002_xxx.sql` وغيّر Deploy command إلى `npm run deploy`.
+لإضافة جداول جديدة: ضيف ملف `migrations/000X_xxx.sql` وطبّقه على `nexora-db`.
 
 ## الاختبار
 

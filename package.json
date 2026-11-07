@@ -3,15 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "NEXORA Digital Marketing — agency website + admin dashboard on Cloudflare Workers + D1",
+  "description": "NEXORA Digital Marketing — agency website + admin dashboard on Cloudflare Pages + D1",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy",
-    "db:migrate": "wrangler d1 migrations apply DB --remote",
+    "build": "node scripts/build.mjs",
+    "db:migrate": "wrangler d1 migrations apply nexora-db --remote",
     "test": "node --no-warnings test/run.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.40.0"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
