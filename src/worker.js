@@ -16,13 +16,17 @@ const PUBLIC_SETTINGS = [
 // Admin-editable collections and their writable columns
 const COLLECTIONS = {
   services: { cols: { icon: 'text', title: 'req', description: 'text', features: 'text', sort_order: 'int', active: 'bool' } },
-  portfolio: { cols: { title: 'req', category: 'text', description: 'text', image_url: 'url', result: 'text', link: 'url', sort_order: 'int', active: 'bool' } },
+  portfolio: { cols: { title: 'req', category: 'text', description: 'text', challenge: 'text', solution: 'text', image_url: 'url', result: 'text', link: 'url', sort_order: 'int', active: 'bool' } },
   testimonials: { cols: { name: 'req', role: 'text', content: 'req', rating: 'int', sort_order: 'int', active: 'bool' } },
   packages: { cols: { name: 'req', price: 'text', period: 'text', description: 'text', features: 'text', featured: 'bool', sort_order: 'int', active: 'bool' } },
   faqs: { cols: { question: 'req', answer: 'req', sort_order: 'int', active: 'bool' } },
 };
 
 const LEAD_STATUSES = ['new', 'contacted', 'won', 'lost'];
+const LEAD_SOURCES = ['contact', 'audit', 'quiz'];
+const SOURCE_LABEL = { contact: 'فورم التواصل', audit: 'فحص مجاني للصفحة', quiz: 'اختبار الباقة' };
+const MEDIA_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const MEDIA_MAX_BYTES = 4 * 1024 * 1024;
 
 // ---------------------------------------------------------------- helpers
 class HttpError extends Error {
@@ -140,7 +144,7 @@ async function getContent(env) {
   const [settings, services, portfolio, testimonials, packages, faqs] = await env.DB.batch([
     env.DB.prepare(`SELECT key, value FROM settings WHERE key IN (${placeholders})`).bind(...PUBLIC_SETTINGS),
     env.DB.prepare('SELECT id, icon, title, description, features FROM services WHERE active = 1 ORDER BY sort_order, id'),
-    env.DB.prepare('SELECT id, title, category, description, image_url, result, link FROM portfolio WHERE active = 1 ORDER BY sort_order, id'),
+    env.DB.prepare('SELECT id, title, category, description, challenge, solution, image_url, result, link FROM portfolio WHERE active = 1 ORDER BY sort_order, id'),
     env.DB.prepare('SELECT id, name, role, content, rating FROM testimonials WHERE active = 1 ORDER BY sort_order, id'),
     env.DB.prepare('SELECT id, name, price, period, description, features, featured FROM packages WHERE active = 1 ORDER BY sort_order, id'),
     env.DB.prepare('SELECT id, question, answer FROM faqs WHERE active = 1 ORDER BY sort_order, id'),
@@ -157,14 +161,18 @@ async function getContent(env) {
   };
 }
 
-async function postContact(req, env) {
+async function postContact(req, env, ctx) {
   assertSameOrigin(req);
   const body = await readJson(req, 16 * 1024);
   if (str(body.website)) return json({ ok: true }); // honeypot: silently accept bots
   const lead = {
     name: str(body.name, 120), email: str(body.email, 160).toLowerCase(), phone: str(body.phone, 40),
     company: str(body.company, 160), service: str(body.service, 160), budget: str(body.budget, 80), message: str(body.message, 4000),
+    source: LEAD_SOURCES.includes(body.source) ? body.source : 'contact', page_url: str(body.page_url, 500),
   };
+  if (lead.page_url && !/^https?:\/\/[^\s<>"']+\.[^\s<>"']+$/i.test(lead.page_url)) throw new HttpError(400, 'رابط الصفحة غير صحيح، انسخه كامل من المتصفح');
+  if (lead.source === 'audit' && !lead.page_url) throw new HttpError(400, 'من فضلك حط رابط صفحتك');
+  if (lead.source === 'audit' && !lead.phone) throw new HttpError(400, 'من فضلك اكتب رقم الموبايل');
   if (lead.name.length < 2) throw new HttpError(400, 'من فضلك اكتب اسمك');
   if (!lead.email && !lead.phone) throw new HttpError(400, 'من فضلك اكتب رقم الموبايل أو البريد الإلكتروني');
   if (lead.email && !isEmail(lead.email)) throw new HttpError(400, 'البريد الإلكتروني غير صحيح');
@@ -175,9 +183,22 @@ async function postContact(req, env) {
   ).bind(ip).first();
   if (recent.c >= CONTACT_MAX_PER_HOUR) throw new HttpError(429, 'وصلنا طلبات كتير منك، حاول تاني بعد شوية');
   await env.DB.prepare(
-    'INSERT INTO leads (name, email, phone, company, service, budget, message, ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-  ).bind(lead.name, lead.email, lead.phone, lead.company, lead.service, lead.budget, lead.message, ip).run();
-  return json({ ok: true, message: 'تم استلام طلبك بنجاح! هنتواصل معاك في أقرب وقت.' }, 201);
+    'INSERT INTO leads (name, email, phone, company, service, budget, message, source, page_url, ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  ).bind(lead.name, lead.email, lead.phone, lead.company, lead.service, lead.budget, lead.message, lead.source, lead.page_url, ip).run();
+  const lines = [
+    '🔔 طلب جديد — ' + SOURCE_LABEL[lead.source],
+    '👤 ' + lead.name,
+    lead.phone && '📞 ' + lead.phone,
+    lead.email && '✉️ ' + lead.email,
+    lead.service && '🧩 ' + lead.service,
+    lead.page_url && '🔗 ' + lead.page_url,
+    lead.message && '📝 ' + lead.message.slice(0, 700),
+  ].filter(Boolean);
+  const p = notifyTelegram(env, lines.join('\n')).catch((e) => console.error('telegram', e));
+  if (ctx && ctx.waitUntil) ctx.waitUntil(p); else await p;
+  return json({ ok: true, message: lead.source === 'audit'
+    ? 'تم استلام طلب الفحص! هنراجع صفحتك ونبعتلك الملاحظات على واتساب.'
+    : 'تم استلام طلبك بنجاح! هنتواصل معاك في أقرب وقت.' }, 201);
 }
 
 async function postSubscribe(req, env) {
@@ -187,6 +208,101 @@ async function postSubscribe(req, env) {
   if (!isEmail(email)) throw new HttpError(400, 'البريد الإلكتروني غير صحيح');
   await env.DB.prepare('INSERT OR IGNORE INTO subscribers (email) VALUES (?)').bind(email).run();
   return json({ ok: true, message: 'تم الاشتراك بنجاح 🎉' }, 201);
+}
+
+// ---------------------------------------------------------------- telegram
+async function getSystem(env, key) {
+  const r = await env.DB.prepare('SELECT value FROM system WHERE key = ?').bind(key).first();
+  return r ? r.value : '';
+}
+async function setSystem(env, key, value) {
+  if (value === '') await env.DB.prepare('DELETE FROM system WHERE key = ?').bind(key).run();
+  else await env.DB.prepare('INSERT INTO system (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(key, value).run();
+}
+async function telegramCall(token, method, payload) {
+  const r = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload || {}),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!data.ok) throw new HttpError(400, 'تليجرام رفض الطلب: ' + str(data.description || r.status, 200));
+  return data.result;
+}
+async function notifyTelegram(env, text) {
+  const token = await getSystem(env, 'telegram_token');
+  const chat = await getSystem(env, 'telegram_chat_id');
+  if (!token || !chat) return false;
+  await telegramCall(token, 'sendMessage', { chat_id: chat, text: text.slice(0, 4000), disable_web_page_preview: true });
+  return true;
+}
+
+async function adminNotify(req, env, action) {
+  if (req.method === 'GET' && !action) {
+    const token = await getSystem(env, 'telegram_token');
+    const chat = await getSystem(env, 'telegram_chat_id');
+    return json({ hasToken: !!token, tokenHint: token ? '••••' + token.slice(-4) : '', chatId: chat, chatTitle: await getSystem(env, 'telegram_chat_title') });
+  }
+  if (req.method === 'PUT' && !action) {
+    const body = await readJson(req, 4096);
+    if (body.clear) {
+      for (const k of ['telegram_token', 'telegram_chat_id', 'telegram_chat_title']) await setSystem(env, k, '');
+      return json({ ok: true, message: 'تم إيقاف الإشعارات' });
+    }
+    const token = str(body.bot_token, 200);
+    if (!/^\d{5,}:[A-Za-z0-9_-]{30,}$/.test(token)) throw new HttpError(400, 'التوكن شكله غلط — انسخه كامل من BotFather');
+    const me = await telegramCall(token, 'getMe');
+    await setSystem(env, 'telegram_token', token);
+    return json({ ok: true, message: `تم ربط البوت @${me.username}. دلوقتي ابعتله أي رسالة من تليجرام ودوس "ربط حسابي".`, botUsername: me.username });
+  }
+  if (req.method === 'POST' && action === 'detect') {
+    const token = await getSystem(env, 'telegram_token');
+    if (!token) throw new HttpError(400, 'حط توكن البوت الأول');
+    const updates = await telegramCall(token, 'getUpdates', { limit: 50, timeout: 0 });
+    const last = [...updates].reverse().map((u) => (u.message || u.channel_post || u.my_chat_member || {}).chat).find(Boolean);
+    if (!last) throw new HttpError(404, 'مفيش رسايل للبوت. افتح البوت في تليجرام وابعتله "مرحبا" وجرب تاني');
+    const title = last.title || [last.first_name, last.last_name].filter(Boolean).join(' ') || last.username || String(last.id);
+    await setSystem(env, 'telegram_chat_id', String(last.id));
+    await setSystem(env, 'telegram_chat_title', str(title, 100));
+    await telegramCall(token, 'sendMessage', { chat_id: last.id, text: '✅ تم ربط إشعارات موقع NEXORA. أي طلب جديد هيوصلك هنا.' });
+    return json({ ok: true, message: 'تم الربط مع: ' + title, chatTitle: title });
+  }
+  if (req.method === 'POST' && action === 'test') {
+    const sent = await notifyTelegram(env, '🧪 رسالة تجريبية من لوحة تحكم NEXORA — الإشعارات شغالة ✅');
+    if (!sent) throw new HttpError(400, 'الإشعارات مش متظبطة لسه');
+    return json({ ok: true, message: 'اتبعتت رسالة تجريبية على تليجرام' });
+  }
+  throw new HttpError(405, 'Method not allowed');
+}
+
+// ---------------------------------------------------------------- media (R2)
+async function adminUpload(req, env) {
+  if (!env.MEDIA) throw new HttpError(500, 'مخزن الصور غير متصل');
+  const type = (req.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  const ext = MEDIA_TYPES[type];
+  if (!ext) throw new HttpError(415, 'نوع الصورة لازم يكون JPG أو PNG أو WEBP');
+  const buf = await req.arrayBuffer();
+  if (!buf.byteLength) throw new HttpError(400, 'الملف فاضي');
+  if (buf.byteLength > MEDIA_MAX_BYTES) throw new HttpError(413, 'الصورة أكبر من 4 ميجا');
+  const b = new Uint8Array(buf.slice(0, 12));
+  const isJpg = b[0] === 0xff && b[1] === 0xd8;
+  const isPng = b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+  const isWebp = b[0] === 0x52 && b[1] === 0x49 && b[8] === 0x57 && b[9] === 0x45;
+  if (!((ext === 'jpg' && isJpg) || (ext === 'png' && isPng) || (ext === 'webp' && isWebp))) throw new HttpError(415, 'الملف مش صورة صالحة');
+  const key = `${new Date().toISOString().slice(0, 7)}/${randomHex(12)}.${ext}`;
+  await env.MEDIA.put(key, buf, { httpMetadata: { contentType: type, cacheControl: 'public, max-age=31536000, immutable' } });
+  await env.DB.prepare('INSERT INTO media (key, content_type, size) VALUES (?, ?, ?)').bind(key, type, buf.byteLength).run();
+  return json({ ok: true, url: '/media/' + key }, 201);
+}
+
+async function serveMedia(env, key) {
+  if (!env.MEDIA || !/^\d{4}-\d{2}\/[a-f0-9]{24}\.(jpg|png|webp)$/.test(key)) return new Response('Not found', { status: 404 });
+  const obj = await env.MEDIA.get(key);
+  if (!obj) return new Response('Not found', { status: 404 });
+  const h = new Headers();
+  obj.writeHttpMetadata(h);
+  h.set('etag', obj.httpEtag);
+  h.set('cache-control', 'public, max-age=31536000, immutable');
+  h.set('content-disposition', 'inline');
+  return new Response(obj.body, { headers: h });
 }
 
 // ---------------------------------------------------------------- admin API
@@ -267,21 +383,23 @@ async function adminChangePassword(req, env, admin) {
 }
 
 async function adminStats(env) {
-  const [leads, byStatus, subs, week, services, portfolio, recent] = await env.DB.batch([
+  const [leads, byStatus, subs, week, services, portfolio, recent, audits, tg] = await env.DB.batch([
     env.DB.prepare('SELECT COUNT(*) AS c FROM leads'),
     env.DB.prepare('SELECT status, COUNT(*) AS c FROM leads GROUP BY status'),
     env.DB.prepare('SELECT COUNT(*) AS c FROM subscribers'),
     env.DB.prepare(`SELECT COUNT(*) AS c FROM leads WHERE created_at > datetime('now', '-7 days')`),
     env.DB.prepare('SELECT COUNT(*) AS c FROM services WHERE active = 1'),
     env.DB.prepare('SELECT COUNT(*) AS c FROM portfolio WHERE active = 1'),
-    env.DB.prepare('SELECT id, name, service, status, created_at FROM leads ORDER BY id DESC LIMIT 5'),
+    env.DB.prepare('SELECT id, name, service, source, status, created_at FROM leads ORDER BY id DESC LIMIT 5'),
+    env.DB.prepare(`SELECT COUNT(*) AS c FROM leads WHERE source = 'audit'`),
+    env.DB.prepare(`SELECT COUNT(*) AS c FROM system WHERE key = 'telegram_chat_id'`),
   ]);
   const status = Object.fromEntries(LEAD_STATUSES.map((s) => [s, 0]));
   for (const r of byStatus.results) status[r.status] = r.c;
   return json({
     leads: leads.results[0].c, leadsThisWeek: week.results[0].c, byStatus: status,
     subscribers: subs.results[0].c, services: services.results[0].c, portfolio: portfolio.results[0].c,
-    recentLeads: recent.results,
+    recentLeads: recent.results, audits: audits.results[0].c, telegram: tg.results[0].c > 0,
   });
 }
 
@@ -291,9 +409,11 @@ async function adminListLeads(url, env) {
   let sql = 'SELECT * FROM leads WHERE 1=1';
   const binds = [];
   if (LEAD_STATUSES.includes(status)) { sql += ' AND status = ?'; binds.push(status); }
+  const source = url.searchParams.get('source') || '';
+  if (LEAD_SOURCES.includes(source)) { sql += ' AND source = ?'; binds.push(source); }
   if (q) {
-    sql += ' AND (name LIKE ? OR email LIKE ? OR phone LIKE ? OR company LIKE ? OR message LIKE ?)';
-    const like = `%${q}%`; binds.push(like, like, like, like, like);
+    sql += ' AND (name LIKE ? OR email LIKE ? OR phone LIKE ? OR company LIKE ? OR message LIKE ? OR page_url LIKE ?)';
+    const like = `%${q}%`; binds.push(like, like, like, like, like, like);
   }
   sql += ' ORDER BY id DESC LIMIT 500';
   const r = await env.DB.prepare(sql).bind(...binds).all();
@@ -307,8 +427,8 @@ function csvCell(v) {
 }
 
 async function adminLeadsCsv(env) {
-  const r = await env.DB.prepare('SELECT id, created_at, name, phone, email, company, service, budget, status, message, notes FROM leads ORDER BY id DESC').all();
-  const cols = ['id', 'created_at', 'name', 'phone', 'email', 'company', 'service', 'budget', 'status', 'message', 'notes'];
+  const r = await env.DB.prepare('SELECT id, created_at, source, name, phone, email, company, service, budget, page_url, status, message, notes FROM leads ORDER BY id DESC').all();
+  const cols = ['id', 'created_at', 'source', 'name', 'phone', 'email', 'company', 'service', 'budget', 'page_url', 'status', 'message', 'notes'];
   const lines = [cols.join(',')].concat(r.results.map((row) => cols.map((c) => csvCell(row[c])).join(',')));
   return new Response('﻿' + lines.join('\r\n'), {
     headers: {
@@ -414,7 +534,7 @@ async function adminSettings(req, env) {
 }
 
 // ---------------------------------------------------------------- router
-async function handleApi(req, env, url) {
+async function handleApi(req, env, url, ctx) {
   const path = url.pathname.replace(/\/+$/, '');
   const m = req.method;
 
@@ -425,7 +545,7 @@ async function handleApi(req, env, url) {
   if (path === '/api/content' && m === 'GET') {
     return json(await getContent(env), 200, { 'cache-control': 'public, max-age=60' });
   }
-  if (path === '/api/contact' && m === 'POST') return postContact(req, env);
+  if (path === '/api/contact' && m === 'POST') return postContact(req, env, ctx);
   if (path === '/api/subscribe' && m === 'POST') return postSubscribe(req, env);
 
   if (path === '/api/admin/setup-status' && m === 'GET') return adminSetupStatus(env);
@@ -440,12 +560,14 @@ async function handleApi(req, env, url) {
     const parts = path.split('/').slice(3); // after /api/admin
     const [resource, rawId] = parts;
     const id = rawId !== undefined ? Number(rawId) : undefined;
-    if (rawId !== undefined && (!Number.isInteger(id) || id <= 0)) throw new HttpError(400, 'معرّف غير صالح');
+    if (rawId !== undefined && resource !== 'notify' && (!Number.isInteger(id) || id <= 0)) throw new HttpError(400, 'معرّف غير صالح');
 
     if (resource === 'me' && m === 'GET') return json({ username: admin.username });
     if (resource === 'password' && m === 'POST') return adminChangePassword(req, env, admin);
     if (resource === 'stats' && m === 'GET') return adminStats(env);
     if (resource === 'settings') return adminSettings(req, env);
+    if (resource === 'notify') return adminNotify(req, env, rawId);
+    if (resource === 'upload' && m === 'POST') return adminUpload(req, env);
     if (resource === 'leads.csv' && m === 'GET') return adminLeadsCsv(env);
     if (resource === 'leads') {
       if (m === 'GET' && !id) return adminListLeads(url, env);
@@ -473,7 +595,7 @@ const CSP = [
   "script-src 'self'",
   "style-src 'self' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' https: data:",
+  "img-src 'self' https: data: blob:",
   "connect-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -499,13 +621,16 @@ function withSecurityHeaders(res, isAdmin) {
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url);
+    if (url.pathname.startsWith('/media/') && (req.method === 'GET' || req.method === 'HEAD')) {
+      return withSecurityHeaders(await serveMedia(env, url.pathname.slice(7)), false);
+    }
     const isApi = url.pathname.startsWith('/api/');
     const isAdmin = url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/admin');
     let res;
     try {
-      if (isApi) res = await handleApi(req, env, url);
+      if (isApi) res = await handleApi(req, env, url, ctx);
       else res = await env.ASSETS.fetch(req);
     } catch (err) {
       if (err instanceof HttpError) res = json({ ok: false, error: err.message }, err.status);

@@ -54,7 +54,7 @@ export function startServer(port, env) {
     for (const [k, v] of Object.entries(req.headers)) headers.set(k, Array.isArray(v) ? v.join(', ') : v);
     headers.set('cf-connecting-ip', req.headers['x-test-ip'] || '127.0.0.1');
     const request = new Request(`http://localhost:${port}${req.url}`, { method: req.method, headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : body });
-    const r = await worker.fetch(request, env);
+    const r = await worker.fetch(request, env, { waitUntil: (p) => p });
     const h = {};
     r.headers.forEach((v, k) => { h[k] = v; });
     // local test runs over http, so drop the Secure flag on cookies
@@ -65,4 +65,12 @@ export function startServer(port, env) {
   return new Promise((resolve) => server.listen(port, () => resolve(server)));
 }
 
-export const makeEnv = () => ({ DB: makeDb(), ASSETS });
+const MEDIA = {
+  store: new Map(),
+  async put(key, buf, opts) { this.store.set(key, { buf: Buffer.from(buf), ct: opts?.httpMetadata?.contentType }); },
+  async get(key) {
+    const o = this.store.get(key); if (!o) return null;
+    return { body: o.buf, httpEtag: '"x"', writeHttpMetadata(h) { h.set('content-type', o.ct); } };
+  },
+};
+export const makeEnv = () => ({ DB: makeDb(), ASSETS, MEDIA });

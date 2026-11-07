@@ -114,3 +114,16 @@ label .hint { font-weight: 400; color: var(--muted); font-size: .8rem; }
   .form-grid { grid-template-columns: 1fr; }
   #whoami { display: none; }
 }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.img-field { display: grid; gap: .5rem; }
+.img-field__label { font-weight: 600; font-size: .92rem; }
+.img-field__row { display: flex; gap: .5rem; }
+.upload-btn { cursor: pointer; }
+.img-preview { max-width: 100%; max-height: 200px; border-radius: 12px; border: 1px solid var(--line); object-fit: cover; }
+.notice { display: grid; gap: .2rem; color: var(--text); border-color: rgba(255,201,74,.45); }
+.notice--ok { border-color: rgba(79,209,139,.45); }
+.pill--src { color: #c9b6ff; }
+.step h2 { display: flex; align-items: center; gap: .6rem; }
+.step__n { width: 30px; height: 30px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; font-size: .95rem; flex: none; }
+.steps-list { margin: 0; padding-inline-start: 1.3rem; display: grid; gap: .4rem; color: #d3def7; }

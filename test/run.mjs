@@ -2,6 +2,23 @@ import { startServer, makeEnv } from './harness.mjs';
 import { createHash } from 'node:crypto';
 
 const PORT = 8788;
+// Mock Telegram API
+const tgCalls = [];
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url, init) => {
+  const u = String(url);
+  if (u.startsWith('https://api.telegram.org/')) {
+    const method = u.split('/').pop();
+    const body = init?.body ? JSON.parse(init.body) : {};
+    tgCalls.push({ method, body });
+    if (u.includes(':BAD')) return new Response(JSON.stringify({ ok: false, description: 'Unauthorized' }));
+    const result = method === 'getMe' ? { username: 'nexora_test_bot' }
+      : method === 'getUpdates' ? [{ message: { chat: { id: 5551234, first_name: 'Ahmed' } } }]
+      : { message_id: 1 };
+    return new Response(JSON.stringify({ ok: true, result }));
+  }
+  return realFetch(url, init);
+};
 const env = makeEnv();
 const SETUP_CODE = 'test-setup-code-123';
 env.DB.raw.prepare(`INSERT INTO system (key, value) VALUES ('setup_code_hash', ?)`).run(createHash('sha256').update(SETUP_CODE).digest('hex'));
@@ -95,6 +112,37 @@ r = await call('POST', '/api/admin/login', { username: 'nexora', password: 'Secr
 for (let i = 0; i < 8; i++) await call('POST', '/api/admin/login', { username: 'nexora', password: 'bad' }, { headers: { 'x-test-ip': '7.7.7.7' }, keepCookie: false });
 r = await call('POST', '/api/admin/login', { username: 'nexora', password: 'NewSecret123' }, { headers: { 'x-test-ip': '7.7.7.7' }, keepCookie: false }); ok(r.s === 429, 'login brute-force rate limited');
 cookie = saved;
+
+console.log('New features');
+r = await call('POST', '/api/contact', { name: 'Audit Guy', phone: '01000000000', source: 'audit' }); ok(r.s === 400, 'audit requires page link');
+r = await call('POST', '/api/contact', { name: 'Audit Guy', phone: '01000000000', source: 'audit', page_url: 'javascript:alert(1)' }); ok(r.s === 400, 'audit rejects bad link');
+r = await call('POST', '/api/contact', { name: 'Audit Guy', phone: '01000000000', source: 'audit', page_url: 'https://facebook.com/mypage' }, { headers: { 'x-test-ip': '3.3.3.3' } }); ok(r.s === 201 && r.d.message.includes('الفحص'), 'audit lead saved');
+r = await call('POST', '/api/contact', { name: 'Quiz Guy', phone: '01000000001', source: 'quiz', service: 'الباقة الاحترافية' }, { headers: { 'x-test-ip': '3.3.3.3' } }); ok(r.s === 201, 'quiz lead saved');
+r = await call('GET', '/api/admin/leads?source=audit'); ok(r.d.items.length === 1 && r.d.items[0].page_url === 'https://facebook.com/mypage', 'leads filter by source');
+r = await call('GET', '/api/admin/stats'); ok(r.d.audits === 1 && r.d.telegram === false, 'stats audits + telegram flag');
+ok(tgCalls.length === 0, 'no telegram calls before setup');
+r = await call('PUT', '/api/admin/notify', { bot_token: 'nope' }); ok(r.s === 400, 'notify: bad token format');
+r = await call('PUT', '/api/admin/notify', { bot_token: '12345678:BADxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }); ok(r.s === 400, 'notify: telegram rejects token');
+r = await call('PUT', '/api/admin/notify', { bot_token: '12345678:AAH' + 'x'.repeat(32) }); ok(r.s === 200 && r.d.botUsername === 'nexora_test_bot', 'notify: token saved');
+r = await call('GET', '/api/admin/notify'); ok(r.d.hasToken && !JSON.stringify(r.d).includes('AAH'), 'notify: token never returned');
+r = await call('POST', '/api/admin/notify/detect', {}); ok(r.s === 200 && r.d.chatTitle === 'Ahmed', 'notify: chat detected');
+r = await call('POST', '/api/admin/notify/test', {}); ok(r.s === 200, 'notify: test message');
+tgCalls.length = 0;
+r = await call('POST', '/api/contact', { name: 'Lead TG', phone: '01011111111', service: 'باقة بريميوم', message: 'hi' }, { headers: { 'x-test-ip': '4.4.4.4' } });
+await new Promise((res) => setTimeout(res, 50));
+ok(r.s === 201 && tgCalls.some((c) => c.method === 'sendMessage' && c.body.chat_id === '5551234' && c.body.text.includes('Lead TG')), 'new lead -> telegram message');
+r = await call('GET', '/api/content'); ok(!JSON.stringify(r.d).includes('telegram'), 'telegram settings not public');
+// uploads
+const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63f8ffff3f0005fe02fea7d6a4f50000000049454e44ae426082', 'hex');
+let up = await fetch(B + '/api/admin/upload', { method: 'POST', headers: { 'content-type': 'image/png', cookie }, body: png });
+let upd = await up.json(); ok(up.status === 201 && /^\/media\/\d{4}-\d{2}\/[a-f0-9]{24}\.png$/.test(upd.url), 'upload png');
+let got = await fetch(B + upd.url); ok(got.status === 200 && got.headers.get('content-type') === 'image/png' && (await got.arrayBuffer()).byteLength === png.length, 'serve uploaded media');
+up = await fetch(B + '/api/admin/upload', { method: 'POST', headers: { 'content-type': 'image/jpeg', cookie }, body: png }); ok(up.status === 415, 'upload: mismatched type rejected');
+up = await fetch(B + '/api/admin/upload', { method: 'POST', headers: { 'content-type': 'text/html', cookie }, body: '<script>' }); ok(up.status === 415, 'upload: html rejected');
+up = await fetch(B + '/api/admin/upload', { method: 'POST', headers: { 'content-type': 'image/png' }, body: png }); ok(up.status === 401, 'upload: requires login');
+got = await fetch(B + '/media/../wrangler.jsonc'); ok(got.status === 404, 'media path traversal blocked');
+r = await call('POST', '/api/admin/portfolio', { title: 'Case', image_url: upd.url, challenge: 'قليل', solution: 'حملة', result: '+300%' }); ok(r.s === 201, 'portfolio case study saved');
+r = await call('GET', '/api/content'); ok(r.d.portfolio.some((p) => p.challenge === 'قليل' && p.image_url === upd.url), 'case study public');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (process.argv.includes('--serve')) {

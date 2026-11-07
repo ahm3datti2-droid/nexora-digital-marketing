@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Montserrat:wght@600;700;800&display=swap">
-  <link rel="stylesheet" href="/css/site.css?v=2">
+  <link rel="stylesheet" href="/css/site.css?v=3">
 </head>
 <body>
   <a class="skip" href="#main">تخطّي إلى المحتوى</a>
@@ -31,6 +31,7 @@
       <nav class="nav__links" id="navLinks" aria-label="القائمة الرئيسية">
         <a href="#services">الخدمات</a>
         <a href="#pricing">الباقات والأسعار</a>
+        <a href="#audit">فحص مجاني</a>
         <a href="#work" data-section="portfolio" hidden>أعمالنا</a>
         <a href="#process">طريقة الشغل</a>
         <a href="#faq">الأسئلة</a>
@@ -99,6 +100,32 @@
       </div>
     </section>
 
+    <!-- FREE AUDIT -->
+    <section class="section section--tight" id="audit">
+      <div class="container">
+        <div class="audit">
+          <div class="audit__copy">
+            <span class="badge-free">مجانًا</span>
+            <h2>فحص مجاني لصفحتك</h2>
+            <p class="lead">ابعتلنا لينك صفحتك على فيسبوك أو إنستجرام، وهنراجعها ونبعتلك على واتساب أهم الملاحظات اللي هتفرق معاك في التفاعل والمبيعات.</p>
+            <ul class="audit__list">
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>تقييم شكل الصفحة والهوية</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>ملاحظات على المحتوى والنشر</li>
+              <li><svg aria-hidden="true"><use href="#i-check"/></svg>فرص تحسين الإعلانات</li>
+            </ul>
+          </div>
+          <form class="card form audit__form" id="auditForm" novalidate>
+            <label>الاسم *<input name="name" required maxlength="120" autocomplete="name" placeholder="اسمك"></label>
+            <label>رقم الواتساب *<input name="phone" type="tel" inputmode="tel" maxlength="40" autocomplete="tel" dir="ltr" placeholder="01xxxxxxxxx" required></label>
+            <label>لينك صفحتك *<input name="page_url" type="url" inputmode="url" maxlength="500" dir="ltr" placeholder="https://facebook.com/..." required></label>
+            <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+            <button class="btn btn--primary btn--block btn--lg" type="submit">اطلب الفحص المجاني</button>
+            <p class="form__msg" id="auditMsg" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <!-- PRICING -->
     <section class="section section--alt" id="pricing" hidden>
       <div class="container">
@@ -109,6 +136,16 @@
         </header>
         <div class="grid grid--3 pricing" id="pricingGrid"></div>
         <p class="pricing__note">* ميزانية الإعلانات الممولة بتتدفع للمنصة مباشرة وبتحددها إنت.</p>
+        <div class="quiz card" id="quiz">
+          <div class="quiz__head">
+            <span class="quiz__ic"><svg aria-hidden="true"><use href="#i-target"/></svg></span>
+            <div>
+              <h3>مش عارف تختار؟</h3>
+              <p class="muted">جاوب على 3 أسئلة وهنقولك أنسب باقة ليك.</p>
+            </div>
+          </div>
+          <div id="quizBody"><button type="button" class="btn btn--primary" id="quizStart">ابدأ الاختبار — 30 ثانية</button></div>
+        </div>
       </div>
     </section>
 
@@ -258,6 +295,24 @@
     <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><use href="#i-wa"/></svg>
   </a>
 
+  <dialog class="case" id="caseModal" aria-labelledby="caseTitle">
+    <div class="case__box">
+      <button type="button" class="case__close" id="caseClose" aria-label="إغلاق">✕</button>
+      <div class="case__img" id="caseImg"></div>
+      <div class="case__body">
+        <span class="tag" id="caseCat"></span>
+        <h3 id="caseTitle"></h3>
+        <p class="muted" id="caseDesc"></p>
+        <div class="case__grid">
+          <div class="case__part" id="caseChallengeWrap"><h4>التحدي</h4><p id="caseChallenge"></p></div>
+          <div class="case__part" id="caseSolutionWrap"><h4>اللي عملناه</h4><p id="caseSolution"></p></div>
+        </div>
+        <div class="case__result" id="caseResultWrap"><svg aria-hidden="true"><use href="#i-chart"/></svg><b id="caseResult"></b></div>
+        <a class="btn btn--ghost" id="caseLink" href="#" target="_blank" rel="noopener">عرض المشروع</a>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Icon sprite -->
   <svg width="0" height="0" class="sprite" aria-hidden="true">
     <defs>
@@ -279,6 +334,6 @@
     </defs>
   </svg>
 
-  <script src="/js/site.js?v=2" defer></script>
+  <script src="/js/site.js?v=3" defer></script>
 </body>
 </html>

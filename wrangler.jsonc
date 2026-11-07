@@ -15,6 +15,14 @@
       "database_id": "82afcaa3-cde4-4026-a7ac-f1b908d79871",
       "migrations_dir": "migrations"
     }
+  ],
+
+  // Uploaded images (portfolio, case studies) — served at /media/<key>
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "nexora-media"
+    }
   ]
 
   // No secrets are needed. Admin credentials live (hashed) in D1.

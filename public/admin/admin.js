@@ -95,8 +95,49 @@
     try { await modalSubmit(); modal.close(); } catch (err) { toast(err.message, true); } finally { btn.disabled = false; }
   });
 
+  async function resizeImage(file) {
+    if (file.type === 'image/png' && file.size <= 1.5 * 1024 * 1024) return file;
+    const bmp = await createImageBitmap(file);
+    const max = 1600;
+    const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('تعذّر تجهيز الصورة'))), 'image/jpeg', 0.85));
+  }
+
+  async function uploadImage(file) {
+    if (!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type) && !file.type.startsWith('image/')) throw new Error('اختار صورة');
+    const blob = await resizeImage(file);
+    const r = await fetch('/api/admin/upload', { method: 'POST', headers: { 'content-type': blob.type || 'image/jpeg' }, body: blob, credentials: 'same-origin' });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || 'فشل رفع الصورة');
+    return data.url;
+  }
+
+  function imageField(f, v) {
+    const input = el('input', { name: f.name, type: 'text', value: String(v || ''), dir: 'ltr', placeholder: 'ارفع صورة أو حط رابط https://' });
+    const preview = el('img', { class: 'img-preview', alt: '' });
+    const setPreview = () => { const u = input.value.trim(); preview.hidden = !u; if (u) preview.src = u; };
+    input.addEventListener('input', setPreview);
+    const file = el('input', { type: 'file', accept: 'image/*', class: 'sr-only', id: 'file-' + f.name });
+    const btn = el('label', { class: 'btn btn--ghost btn--sm upload-btn', for: 'file-' + f.name }, '📷 رفع صورة من الموبايل');
+    const status = el('span', { class: 'hint' });
+    file.addEventListener('change', async () => {
+      const fl = file.files && file.files[0];
+      if (!fl) return;
+      status.textContent = 'جاري الرفع...';
+      try { input.value = await uploadImage(fl); setPreview(); status.textContent = '✅ تم رفع الصورة'; }
+      catch (e) { status.textContent = '❌ ' + e.message; }
+      file.value = '';
+    });
+    setPreview();
+    return el('div', { class: 'full img-field' }, el('span', { class: 'img-field__label', text: f.label }), preview, el('div', { class: 'img-field__row' }, btn, file), input, status);
+  }
+
   function fieldInput(f, value) {
     const v = value ?? f.default ?? '';
+    if (f.type === 'image') return imageField(f, v);
     let input;
     if (f.type === 'textarea') input = el('textarea', { name: f.name, rows: f.rows || 4 }, String(v));
     else if (f.type === 'bool') {
@@ -146,9 +187,11 @@
       fields: [
         { name: 'title', label: 'اسم المشروع', required: true },
         { name: 'category', label: 'التصنيف', placeholder: 'سوشيال ميديا / مواقع / هوية' },
-        { name: 'description', label: 'الوصف', type: 'textarea', full: true },
-        { name: 'result', label: 'النتيجة', placeholder: 'مثال: زيادة المبيعات 3 أضعاف', full: true },
-        { name: 'image_url', label: 'رابط الصورة', ltr: true, full: true, placeholder: 'https://...', hint: 'ارفع الصورة على أي موقع صور وانسخ الرابط المباشر' },
+        { name: 'image_url', label: 'صورة المشروع', type: 'image' },
+        { name: 'description', label: 'وصف قصير', type: 'textarea', full: true, rows: 2 },
+        { name: 'challenge', label: 'التحدي (دراسة الحالة)', type: 'textarea', full: true, rows: 3, hint: 'العميل كان عنده مشكلة إيه؟' },
+        { name: 'solution', label: 'اللي عملناه', type: 'textarea', full: true, rows: 3, hint: 'خطتك والتنفيذ' },
+        { name: 'result', label: 'النتيجة', placeholder: 'مثال: الرسايل زادت 3 أضعاف في شهرين', full: true },
         { name: 'link', label: 'رابط المشروع (اختياري)', ltr: true, full: true, placeholder: 'https://...' },
         ...common,
       ],
@@ -214,6 +257,7 @@
 
   // ---------- Views ----------
   const STATUS = { new: 'جديد', contacted: 'تم التواصل', won: 'تم التعاقد', lost: 'غير مهتم' };
+  const SOURCE = { contact: 'فورم التواصل', audit: 'فحص مجاني', quiz: 'اختبار الباقة' };
 
   async function viewDashboard() {
     setTitle('الرئيسية');
@@ -226,8 +270,9 @@
         el('div', { class: 'stat' }, el('b', { text: s.byStatus.new }), 'طلبات جديدة'),
         el('div', { class: 'stat' }, el('b', { text: s.leadsThisWeek }), 'طلبات آخر 7 أيام'),
         el('div', { class: 'stat' }, el('b', { text: s.byStatus.won }), 'تم التعاقد'),
-        el('div', { class: 'stat' }, el('b', { text: s.subscribers }), 'مشتركين النشرة'),
-        el('div', { class: 'stat' }, el('b', { text: s.services }), 'خدمات منشورة')),
+        el('div', { class: 'stat' }, el('b', { text: s.audits }), 'طلبات فحص مجاني'),
+        el('div', { class: 'stat' }, el('b', { text: s.subscribers }), 'مشتركين النشرة')),
+      s.telegram ? null : el('a', { class: 'panel notice', href: '#/notify' }, el('b', { text: '🔔 فعّل إشعارات تليجرام' }), el('span', { class: 'muted', text: 'عشان يوصلك كل طلب جديد على موبايلك فورًا — دوس هنا.' })),
       el('div', { class: 'panel' }, el('h2', { text: 'حالة الطلبات' }),
         el('div', { class: 'bars' }, Object.entries(STATUS).map(([k, lab]) => el('div', { class: 'bar' },
           el('span', { text: lab }),
@@ -235,7 +280,7 @@
           el('b', { text: s.byStatus[k] }))))),
       el('div', { class: 'panel' }, el('h2', { text: 'أحدث الطلبات' }),
         s.recentLeads.length
-          ? el('div', { class: 'mini' }, s.recentLeads.map((l) => el('a', { href: '#/leads' }, el('span', {}, l.name + (l.service ? ' — ' + l.service : '')), el('span', { class: 'pill pill--' + l.status, text: STATUS[l.status] || l.status }))))
+          ? el('div', { class: 'mini' }, s.recentLeads.map((l) => el('a', { href: '#/leads' }, el('span', {}, l.name + ' — ' + (SOURCE[l.source] || '') + (l.service && l.source !== 'audit' ? ' • ' + l.service : '')), el('span', { class: 'pill pill--' + l.status, text: STATUS[l.status] || l.status }))))
           : el('p', { class: 'muted', text: 'لا توجد طلبات بعد. أول ما حد يملأ فورم التواصل في الموقع هيظهر هنا.' })));
   }
 
@@ -243,14 +288,16 @@
     setTitle('الطلبات');
     const q = el('input', { type: 'search', placeholder: 'بحث بالاسم أو الموبايل أو البريد...' });
     const st = el('select', {}, el('option', { value: '' }, 'كل الحالات'), Object.entries(STATUS).map(([k, v]) => el('option', { value: k }, v)));
+    const src = el('select', {}, el('option', { value: '' }, 'كل المصادر'), Object.entries(SOURCE).map(([k, v]) => el('option', { value: k }, v)));
     const exp = el('a', { class: 'btn btn--ghost', href: '/api/admin/leads.csv', text: '⬇️ تصدير CSV' });
     const list = el('div', { class: 'list' });
-    content.replaceChildren(el('div', { class: 'toolbar' }, q, st, exp), list);
+    content.replaceChildren(el('div', { class: 'toolbar' }, q, st, src, exp), list);
     let timer;
     const load = async () => {
       const params = new URLSearchParams();
       if (q.value.trim()) params.set('q', q.value.trim());
       if (st.value) params.set('status', st.value);
+      if (src.value) params.set('source', src.value);
       const { items } = await api('/leads?' + params);
       if (!items.length) { list.replaceChildren(el('div', { class: 'empty', text: 'لا توجد طلبات.' })); return; }
       list.replaceChildren(...items.map((l) => {
@@ -259,7 +306,7 @@
         sel.style.width = 'auto';
         sel.addEventListener('change', async () => { try { await api('/leads/' + l.id, { method: 'PATCH', body: { status: sel.value } }); toast('تم تحديث الحالة'); refreshBadge(); } catch (e) { toast(e.message, true); } });
         return el('div', { class: 'item' },
-          el('div', { class: 'item__head' }, el('span', { class: 'item__title', text: l.name }), el('span', { class: 'pill pill--' + l.status, text: STATUS[l.status] })),
+          el('div', { class: 'item__head' }, el('span', { class: 'item__title', text: l.name }), el('span', { class: 'toolbar' }, el('span', { class: 'pill pill--src', text: SOURCE[l.source] || l.source }), el('span', { class: 'pill pill--' + l.status, text: STATUS[l.status] }))),
           el('div', { class: 'item__meta' },
             el('span', { text: '🕒 ' + fmtDate(l.created_at) }),
             l.phone ? el('a', { href: 'tel:' + l.phone.replace(/[^\d+]/g, ''), dir: 'ltr', text: '📞 ' + l.phone }) : null,
@@ -267,7 +314,8 @@
             l.email ? el('a', { href: 'mailto:' + l.email, dir: 'ltr', text: '✉️ ' + l.email }) : null,
             l.company ? el('span', { text: '🏢 ' + l.company }) : null,
             l.service ? el('span', { text: '🧩 ' + l.service }) : null,
-            l.budget ? el('span', { text: '💰 ' + l.budget }) : null),
+            l.budget ? el('span', { text: '💰 ' + l.budget }) : null,
+            /^https?:\/\//.test(l.page_url || '') ? el('a', { href: l.page_url, target: '_blank', rel: 'noopener noreferrer', dir: 'ltr', text: '🔗 ' + l.page_url.replace(/^https?:\/\//, '').slice(0, 45) }) : null),
           l.message ? el('p', { class: 'item__text', text: l.message }) : null,
           l.notes ? el('p', { class: 'item__text muted', text: '📝 ' + l.notes }) : null,
           el('div', { class: 'item__actions' }, sel,
@@ -277,6 +325,7 @@
     };
     q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(load, 300); });
     st.addEventListener('change', load);
+    src.addEventListener('change', load);
     await load();
   }
 
@@ -330,6 +379,43 @@
     content.replaceChildren(form);
   }
 
+  async function viewNotify() {
+    setTitle('إشعارات تليجرام');
+    const s = await api('/notify');
+    const msg = el('p', { class: 'msg' });
+    const say = (t, bad) => { msg.className = 'msg ' + (bad ? 'err' : 'ok'); msg.textContent = t; };
+    const run = async (btn, fn) => { btn.disabled = true; try { await fn(); } catch (e) { say(e.message, true); } finally { btn.disabled = false; } };
+
+    const status = s.chatId
+      ? el('div', { class: 'panel notice notice--ok' }, el('b', { text: '✅ الإشعارات شغالة' }), el('span', { class: 'muted', text: 'بتوصل لـ: ' + (s.chatTitle || s.chatId) }))
+      : el('div', { class: 'panel notice' }, el('b', { text: '🔔 الإشعارات مش متفعّلة لسه' }), el('span', { class: 'muted', text: 'اتبع الخطوات اللي تحت (5 دقايق).' }));
+
+    const token = el('input', { type: 'text', dir: 'ltr', placeholder: s.hasToken ? 'محفوظ ' + s.tokenHint + ' — حط توكن جديد لو عايز تغيّره' : '123456789:ABCdef...', autocomplete: 'off' });
+    const saveBtn = el('button', { class: 'btn btn--primary', type: 'button', text: 'حفظ التوكن' });
+    saveBtn.addEventListener('click', () => run(saveBtn, async () => { const r = await api('/notify', { method: 'PUT', body: { bot_token: token.value.trim() } }); token.value = ''; say(r.message); }));
+    const detectBtn = el('button', { class: 'btn btn--primary', type: 'button', text: 'ربط حسابي' });
+    detectBtn.addEventListener('click', () => run(detectBtn, async () => { const r = await api('/notify/detect', { method: 'POST', body: {} }); say(r.message); setTimeout(viewNotify, 1200); }));
+    const testBtn = el('button', { class: 'btn btn--ghost', type: 'button', text: '🧪 ابعت رسالة تجريبية' });
+    testBtn.addEventListener('click', () => run(testBtn, async () => { const r = await api('/notify/test', { method: 'POST', body: {} }); say(r.message); }));
+    const offBtn = el('button', { class: 'btn btn--danger', type: 'button', text: 'إيقاف الإشعارات' });
+    offBtn.addEventListener('click', () => { if (confirm('إيقاف إشعارات تليجرام؟')) run(offBtn, async () => { await api('/notify', { method: 'PUT', body: { clear: true } }); viewNotify(); }); });
+
+    const step = (n, title, ...kids) => el('div', { class: 'panel step' }, el('h2', {}, el('span', { class: 'step__n', text: n }), title), ...kids);
+    content.replaceChildren(status,
+      step('1', 'اعمل بوت من BotFather',
+        el('ol', { class: 'steps-list' },
+          el('li', {}, 'افتح تليجرام وادخل على ', el('a', { href: 'https://t.me/BotFather', target: '_blank', rel: 'noopener', text: '@BotFather' })),
+          el('li', { text: 'ابعتله /newbot' }),
+          el('li', { text: 'اكتب اسم للبوت (مثلًا NEXORA Leads)، وبعدين username لازم يخلص بـ bot (مثلًا nexora_leads_bot)' }),
+          el('li', { text: 'هيبعتلك توكن شكله كده: 123456789:ABC... — انسخه' }))),
+      step('2', 'حط التوكن هنا', el('div', { class: 'toolbar' }, token, saveBtn)),
+      step('3', 'ابعت للبوت رسالة واربط حسابك',
+        el('p', { class: 'muted', text: 'افتح البوت الجديد في تليجرام، دوس Start أو ابعتله "مرحبا"، وبعدين ارجع هنا ودوس:' }),
+        el('div', { class: 'toolbar' }, detectBtn)),
+      el('div', { class: 'toolbar' }, s.chatId ? testBtn : null, s.hasToken ? offBtn : null),
+      msg);
+  }
+
   async function viewAccount() {
     setTitle('الحساب');
     const form = el('form', { class: 'panel', novalidate: true },
@@ -349,7 +435,7 @@
   }
 
   const ROUTES = {
-    dashboard: viewDashboard, leads: viewLeads, subscribers: viewSubscribers, settings: viewSettings, account: viewAccount,
+    dashboard: viewDashboard, leads: viewLeads, subscribers: viewSubscribers, settings: viewSettings, account: viewAccount, notify: viewNotify,
     services: () => viewCollection('services'), portfolio: () => viewCollection('portfolio'), packages: () => viewCollection('packages'),
     testimonials: () => viewCollection('testimonials'), faqs: () => viewCollection('faqs'),
   };

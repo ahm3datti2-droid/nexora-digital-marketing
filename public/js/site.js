@@ -36,6 +36,8 @@
 
   let WA = '';
   let PHONE = '';
+  let PACKAGES = [];
+  let leadSource = 'contact';
 
   $('#year').textContent = new Date().getFullYear();
 
@@ -151,14 +153,17 @@
       const list = cat ? items.filter((i) => i.category === cat) : items;
       grid.replaceChildren(...list.map((w) => {
         const img = safeUrl(w.image_url);
-        return el('article', { class: 'card work' },
+        const hasCase = !!(w.challenge || w.solution || w.description || w.result);
+        const card = el('article', { class: 'card work' },
           el('div', { class: 'work__img' }, img ? el('img', { src: img, alt: w.title, loading: 'lazy' }) : 'NEXORA'),
           el('div', { class: 'work__body' },
             w.category ? el('span', { class: 'tag', text: w.category }) : null,
             el('h3', { text: w.title }),
             w.description ? el('p', { class: 'muted', text: w.description }) : null,
             w.result ? el('p', { class: 'work__result', text: '📈 ' + w.result }) : null,
-            safeUrl(w.link) ? el('a', { href: w.link, target: '_blank', rel: 'noopener', text: 'عرض المشروع ←' }) : null));
+            hasCase ? el('button', { type: 'button', class: 'work__more', text: 'شوف التفاصيل ←' }) : null));
+        if (hasCase) card.addEventListener('click', (e) => { if (!e.target.closest('a')) openCase(w); });
+        return card;
       }));
     };
     const cats = [...new Set(items.map((i) => i.category).filter(Boolean))];
@@ -178,6 +183,75 @@
     draw('');
   }
 
+  // ---------- Case study modal ----------
+  const caseModal = $('#caseModal');
+  $('#caseClose').addEventListener('click', () => caseModal.close());
+  caseModal.addEventListener('click', (e) => { if (e.target === caseModal) caseModal.close(); });
+  function openCase(w) {
+    const img = safeUrl(w.image_url);
+    $('#caseImg').replaceChildren(...(img ? [el('img', { src: img, alt: w.title })] : []));
+    $('#caseImg').hidden = !img;
+    $('#caseCat').textContent = w.category || ''; $('#caseCat').hidden = !w.category;
+    $('#caseTitle').textContent = w.title;
+    $('#caseDesc').textContent = w.description || ''; $('#caseDesc').hidden = !w.description;
+    $('#caseChallenge').textContent = w.challenge || ''; $('#caseChallengeWrap').hidden = !w.challenge;
+    $('#caseSolution').textContent = w.solution || ''; $('#caseSolutionWrap').hidden = !w.solution;
+    $('#caseResult').textContent = w.result || ''; $('#caseResultWrap').hidden = !w.result;
+    const link = safeUrl(w.link);
+    $('#caseLink').hidden = !link; if (link) $('#caseLink').href = link;
+    if (caseModal.showModal) caseModal.showModal(); else caseModal.setAttribute('open', '');
+  }
+
+  // ---------- Package quiz ----------
+  const QUIZ = [
+    { q: 'نشاطك عامل إزاي دلوقتي؟', a: ['مشروع جديد أو صغير', 'نشاط شغال وعايز يكبر', 'شركة أو براند معروف'] },
+    { q: 'إيه أهم هدف ليك؟', a: ['صفحة احترافية وتواجد منتظم', 'عملاء ومبيعات من الإعلانات', 'انتشار على كل المنصات'] },
+    { q: 'محتاج تصميمات قد إيه في الشهر؟', a: ['حوالي 12 تصميم', 'حوالي 20 تصميم', '30 تصميم أو أكتر'] },
+  ];
+  let quizAnswers = [];
+  function quizRender() {
+    const body = $('#quizBody');
+    const step = quizAnswers.length;
+    if (step < QUIZ.length) {
+      const bar = el('div', { class: 'quiz__bar' }); bar.style.width = ((step / QUIZ.length) * 100) + '%';
+      body.replaceChildren(...[
+        el('div', { class: 'quiz__progress' }, bar),
+        el('p', { class: 'quiz__q', text: `${step + 1}/${QUIZ.length} — ${QUIZ[step].q}` }),
+        el('div', { class: 'quiz__opts' }, QUIZ[step].a.map((label, i) => {
+          const b = el('button', { type: 'button', class: 'quiz__opt', text: label });
+          b.addEventListener('click', () => { quizAnswers.push(i); quizRender(); });
+          return b;
+        })),
+        step ? (() => { const back = el('button', { type: 'button', class: 'quiz__back', text: '→ السؤال اللي فات' }); back.addEventListener('click', () => { quizAnswers.pop(); quizRender(); }); return back; })() : null,
+      ].filter(Boolean));
+      return;
+    }
+    const score = quizAnswers.reduce((a, b) => a + b, 0);
+    const n = PACKAGES.length;
+    const featured = PACKAGES.findIndex((x) => Number(x.featured));
+    const mid = featured > 0 && featured < n - 1 ? featured : Math.min(1, n - 1);
+    let idx = score <= 1 ? 0 : score <= 4 ? mid : n - 1;
+    idx = Math.max(0, Math.min(idx, n - 1));
+    const p = PACKAGES[idx];
+    if (!p) { body.replaceChildren(el('p', { class: 'muted', text: 'كلمنا وهنساعدك تختار.' })); return; }
+    const isNum = /^[\d,.\s]+$/.test(p.price || '');
+    const msg = `مرحبًا NEXORA، عملت اختبار الباقات وطلعتلي ${p.name}${p.price ? ` (${p.price}${isNum ? ' ج.م' : ''})` : ''} — عايز أعرف التفاصيل`;
+    const again = el('button', { type: 'button', class: 'quiz__back', text: '↺ أعد الاختبار' });
+    again.addEventListener('click', () => { quizAnswers = []; quizRender(); });
+    const form = el('a', { href: '#contact', class: 'btn btn--ghost', text: 'سيب رقمك ونكلمك' });
+    form.addEventListener('click', (e) => { e.preventDefault(); leadSource = 'quiz'; choosePackageInForm(p.name); });
+    body.replaceChildren(el('div', { class: 'quiz__result' },
+      el('p', { class: 'muted', text: 'الباقة المناسبة ليك:' }),
+      el('h3', { text: p.name }),
+      p.price ? el('div', { class: 'price__amount' }, el('span', { class: 'price__num', text: p.price }), isNum ? el('span', { class: 'price__cur', text: 'ج.م' }) : null, p.period ? el('span', { class: 'price__per', text: '/ ' + p.period }) : null) : null,
+      p.description ? el('p', { class: 'muted', text: p.description }) : null,
+      el('div', { class: 'quiz__actions' },
+        WA ? el('a', { href: waLink(WA, msg), target: '_blank', rel: 'noopener', class: 'btn btn--wa' }, icon('wa', '0 0 32 32'), 'اشترك عبر واتساب') : null,
+        form),
+      again));
+  }
+  $('#quizStart').addEventListener('click', () => { quizAnswers = []; quizRender(); });
+
   function choosePackageInForm(name) {
     const sel = $('#serviceSelect');
     const opt = [...sel.options].find((o) => o.value === name);
@@ -187,6 +261,7 @@
   }
 
   function renderPackages(pk) {
+    PACKAGES = pk;
     const section = $('#pricing');
     if (!pk.length) { section.hidden = true; return; }
     section.hidden = false;
@@ -273,12 +348,33 @@
     const btn = cf.querySelector('button[type=submit]');
     btn.disabled = true; msg.className = 'form__msg'; msg.textContent = 'جاري الإرسال...';
     try {
+      data.source = leadSource;
       const res = await submitJson('/api/contact', data);
       msg.className = 'form__msg ok'; msg.textContent = res.message || 'تم الإرسال بنجاح';
-      cf.reset();
+      cf.reset(); leadSource = 'contact';
     } catch (e2) {
       err(e2.message);
     } finally { btn.disabled = false; }
+  });
+
+  const af = $('#auditForm');
+  af.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('#auditMsg');
+    const data = Object.fromEntries(new FormData(af));
+    const err = (t, field) => { msg.className = 'form__msg err'; msg.textContent = t; if (field) af[field].focus(); };
+    data.page_url = String(data.page_url || '').trim();
+    if (data.page_url && !/^https?:\/\//i.test(data.page_url)) data.page_url = 'https://' + data.page_url;
+    if (!data.name || data.name.trim().length < 2) return err('من فضلك اكتب اسمك', 'name');
+    if (!/^[+\d\s()-]{8,}$/.test(data.phone || '')) return err('من فضلك اكتب رقم واتساب صحيح', 'phone');
+    if (!/^https?:\/\/\S+\.\S+/.test(data.page_url)) return err('من فضلك حط لينك صفحتك', 'page_url');
+    data.source = 'audit'; data.service = 'فحص مجاني للصفحة';
+    const btn = af.querySelector('button[type=submit]');
+    btn.disabled = true; msg.className = 'form__msg'; msg.textContent = 'جاري الإرسال...';
+    try {
+      const res = await submitJson('/api/contact', data);
+      msg.className = 'form__msg ok'; msg.textContent = res.message; af.reset();
+    } catch (e2) { err(e2.message); } finally { btn.disabled = false; }
   });
 
   const nf = $('#newsletterForm');
