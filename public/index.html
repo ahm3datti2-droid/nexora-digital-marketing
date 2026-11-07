@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>NEXORA Digital Marketing | وكالة تسويق رقمي</title>
-  <meta name="description" content="NEXORA وكالة تسويق رقمي متكاملة: إدارة السوشيال ميديا، الإعلانات الممولة، الهوية البصرية، تصميم المواقع وتحسين محركات البحث. Beyond Digital. Beyond Limits.">
-  <meta name="theme-color" content="#050b1f">
+  <title>NEXORA Digital Marketing | وكالة تسويق رقمي احترافية</title>
+  <meta name="description" content="NEXORA وكالة تسويق رقمي: إدارة السوشيال ميديا، تصميمات احترافية، إعلانات ممولة على فيسبوك وإنستجرام وجوجل وتيك توك. باقات شهرية تبدأ من 3,500 ج.م.">
+  <meta name="theme-color" content="#040a1c">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="NEXORA Digital Marketing">
-  <meta property="og:description" content="Beyond Digital. Beyond Limits. — وكالة تسويق رقمي متكاملة">
+  <meta property="og:title" content="NEXORA Digital Marketing — Beyond Digital. Beyond Limits.">
+  <meta property="og:description" content="إدارة سوشيال ميديا وتصميمات وإعلانات ممولة بباقات شهرية واضحة تبدأ من 3,500 ج.م.">
   <meta property="og:image" content="/assets/og.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="/favicon.png">
@@ -16,8 +16,8 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Montserrat:wght@600;800&display=swap">
-  <link rel="stylesheet" href="/css/site.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Montserrat:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="/css/site.css?v=2">
 </head>
 <body>
   <a class="skip" href="#main">تخطّي إلى المحتوى</a>
@@ -29,13 +29,13 @@
         <span class="brand__text"><b>NE<i>X</i>ORA</b><small>DIGITAL MARKETING</small></span>
       </a>
       <nav class="nav__links" id="navLinks" aria-label="القائمة الرئيسية">
-        <a href="#services">خدماتنا</a>
-        <a href="#about">من نحن</a>
+        <a href="#services">الخدمات</a>
+        <a href="#pricing">الباقات والأسعار</a>
+        <a href="#work" data-section="portfolio" hidden>أعمالنا</a>
         <a href="#process">طريقة الشغل</a>
-        <a href="#work" data-section="portfolio">أعمالنا</a>
-        <a href="#pricing">الباقات</a>
         <a href="#faq">الأسئلة</a>
-        <a href="#contact" class="btn btn--sm btn--primary nav__cta">احجز استشارة</a>
+        <a href="#contact">تواصل معنا</a>
+        <a href="#contact" class="btn btn--sm btn--primary nav__cta" data-wa>ابدأ الآن</a>
       </nav>
       <button class="nav__toggle" id="navToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
@@ -46,24 +46,44 @@
   <main id="main">
     <!-- HERO -->
     <section class="hero">
+      <div class="hero__grid" aria-hidden="true"></div>
       <div class="hero__glow" aria-hidden="true"></div>
       <div class="container hero__inner">
         <div class="hero__copy">
-          <p class="eyebrow" dir="ltr" data-setting="tagline">Beyond Digital. Beyond Limits.</p>
-          <h1 data-setting="hero_title">نكبّر علامتك التجارية في العالم الرقمي</h1>
-          <p class="lead" data-setting="hero_subtitle">وكالة تسويق رقمي متكاملة: إدارة السوشيال ميديا، الإعلانات الممولة، الهوية البصرية، المواقع وتحسين محركات البحث — بخطة واضحة ونتائج تقدر تقيسها.</p>
+          <p class="pill-tag"><span class="dot"></span><span dir="ltr" data-setting="tagline">Beyond Digital. Beyond Limits.</span></p>
+          <h1 data-setting="hero_title">تسويق رقمي احترافي يحوّل متابعينك لعملاء</h1>
+          <p class="lead" data-setting="hero_subtitle">إدارة سوشيال ميديا، تصميمات احترافية وإعلانات ممولة مدروسة — بباقات شهرية واضحة تبدأ من 3,500 ج.م.</p>
           <div class="hero__actions">
-            <a href="#contact" class="btn btn--primary">احجز استشارة مجانية</a>
-            <a href="#services" class="btn btn--ghost">اكتشف خدماتنا</a>
+            <a href="#pricing" class="btn btn--primary btn--lg">شوف الباقات والأسعار</a>
+            <a href="#contact" class="btn btn--wa btn--lg" data-wa>
+              <svg viewBox="0 0 32 32" width="20" height="20" aria-hidden="true"><use href="#i-wa"/></svg>
+              كلمنا واتساب
+            </a>
           </div>
+          <ul class="trust">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>تصميمات احترافية</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>إعلانات ممولة مدروسة</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>تقارير أداء واضحة</li>
+          </ul>
           <ul class="stats" id="stats" hidden></ul>
         </div>
         <div class="hero__art" aria-hidden="true">
           <div class="orb"><img src="/assets/mark.png" alt="" width="400" height="320"></div>
-          <div class="chip chip--1">📈 نمو المبيعات</div>
-          <div class="chip chip--2">🎯 استهداف دقيق</div>
-          <div class="chip chip--3">⚡ نتائج قابلة للقياس</div>
+          <div class="float-card float-card--a">
+            <span class="float-card__ic"><svg><use href="#i-chart"/></svg></span>
+            <div><b>نمو مستمر</b><small>متابعة الأرقام كل شهر</small></div>
+          </div>
+          <div class="float-card float-card--b">
+            <span class="float-card__ic"><svg><use href="#i-target"/></svg></span>
+            <div><b>استهداف دقيق</b><small>للعميل المناسب</small></div>
+          </div>
         </div>
+      </div>
+      <div class="container platforms">
+        <p>بنشتغل على</p>
+        <ul>
+          <li>Facebook</li><li>Instagram</li><li>TikTok</li><li>Google</li><li>Meta Ads</li>
+        </ul>
       </div>
     </section>
 
@@ -72,47 +92,62 @@
       <div class="container">
         <header class="section__head">
           <p class="eyebrow">خدماتنا</p>
-          <h2>كل اللي علامتك محتاجاه عشان تكبر أونلاين</h2>
+          <h2>كل اللي نشاطك محتاجه عشان يكبر أونلاين</h2>
+          <p class="muted">فريق متخصص في كل خدمة — وإنت بتتعامل مع جهة واحدة.</p>
         </header>
         <div class="grid grid--3" id="servicesGrid"></div>
       </div>
     </section>
 
-    <!-- ABOUT -->
-    <section class="section section--alt" id="about">
+    <!-- PRICING -->
+    <section class="section section--alt" id="pricing" hidden>
+      <div class="container">
+        <header class="section__head">
+          <p class="eyebrow">الباقات والأسعار</p>
+          <h2>اختار باقتك وابدأ النهارده</h2>
+          <p class="muted">أسعار شهرية واضحة. دوس على الباقة وهتكلمنا على واتساب مباشرة.</p>
+        </header>
+        <div class="grid grid--3 pricing" id="pricingGrid"></div>
+        <p class="pricing__note">* ميزانية الإعلانات الممولة بتتدفع للمنصة مباشرة وبتحددها إنت.</p>
+      </div>
+    </section>
+
+    <!-- WHY -->
+    <section class="section" id="about">
       <div class="container about">
         <div>
-          <p class="eyebrow">من نحن</p>
+          <p class="eyebrow">ليه تختارنا</p>
           <h2 data-setting="about_title">ليه NEXORA؟</h2>
           <p class="lead" data-setting="about_text">إحنا فريق بيجمع بين الإبداع والتحليل.</p>
+          <a href="#contact" class="btn btn--ghost">احجز استشارة مجانية</a>
         </div>
         <ul class="why">
-          <li><span>🧠</span><div><b>استراتيجية مبنية على بيانات</b><p>كل قرار بنعتمد فيه على أرقام وتحليل للسوق والمنافسين.</p></div></li>
-          <li><span>🤝</span><div><b>شفافية كاملة</b><p>تقارير واضحة وتواصل مباشر — تعرف فلوسك راحت فين ورجعت بإيه.</p></div></li>
-          <li><span>🚀</span><div><b>تنفيذ سريع</b><p>فريق متكامل من مصممين وكتّاب ومتخصصي إعلانات تحت سقف واحد.</p></div></li>
-          <li><span>🎯</span><div><b>تركيز على النتيجة</b><p>هدفنا مبيعات وعملاء حقيقيين، مش مجرد لايكات.</p></div></li>
+          <li><span class="why__ic"><svg><use href="#i-chart"/></svg></span><div><b>استراتيجية مبنية على بيانات</b><p>كل قرار بنعتمد فيه على أرقام وتحليل لجمهورك ومنافسينك.</p></div></li>
+          <li><span class="why__ic"><svg><use href="#i-shield"/></svg></span><div><b>شفافية كاملة</b><p>تقارير واضحة تعرف منها فلوسك راحت فين ورجعت بإيه.</p></div></li>
+          <li><span class="why__ic"><svg><use href="#i-bolt"/></svg></span><div><b>تنفيذ سريع ومنظم</b><p>خطة محتوى واضحة ومواعيد نشر ثابتة.</p></div></li>
+          <li><span class="why__ic"><svg><use href="#i-target"/></svg></span><div><b>تركيز على المبيعات</b><p>هدفنا عملاء حقيقيين، مش مجرد لايكات.</p></div></li>
         </ul>
       </div>
     </section>
 
     <!-- PROCESS -->
-    <section class="section" id="process">
+    <section class="section section--alt" id="process">
       <div class="container">
         <header class="section__head">
           <p class="eyebrow">طريقة الشغل</p>
-          <h2>4 خطوات من الفكرة للنتيجة</h2>
+          <h2>4 خطوات بسيطة وتبدأ</h2>
         </header>
         <ol class="steps">
-          <li><b>01</b><h3>الاكتشاف</h3><p>نفهم نشاطك وأهدافك وجمهورك ومنافسينك.</p></li>
-          <li><b>02</b><h3>الاستراتيجية</h3><p>نبني خطة تسويق مخصّصة بميزانية وأهداف واضحة.</p></li>
-          <li><b>03</b><h3>التنفيذ</h3><p>محتوى وتصميمات وحملات بتتنفذ باحترافية وفي الميعاد.</p></li>
-          <li><b>04</b><h3>القياس والتطوير</h3><p>نحلّل الأرقام باستمرار ونحسّن عشان النتايج تزيد.</p></li>
+          <li><b>1</b><h3>تواصل معانا</h3><p>كلمنا واتساب أو املأ الفورم.</p></li>
+          <li><b>2</b><h3>نفهم نشاطك</h3><p>نتعرف على أهدافك وجمهورك ومنافسينك.</p></li>
+          <li><b>3</b><h3>نبدأ التنفيذ</h3><p>خطة محتوى وتصميمات وإعلانات باحترافية.</p></li>
+          <li><b>4</b><h3>نقيس ونطوّر</h3><p>تقارير دورية وتحسين مستمر للنتايج.</p></li>
         </ol>
       </div>
     </section>
 
     <!-- PORTFOLIO -->
-    <section class="section section--alt" id="work" hidden>
+    <section class="section" id="work" hidden>
       <div class="container">
         <header class="section__head">
           <p class="eyebrow">أعمالنا</p>
@@ -120,18 +155,6 @@
         </header>
         <div class="filters" id="workFilters" role="tablist"></div>
         <div class="grid grid--3" id="workGrid"></div>
-      </div>
-    </section>
-
-    <!-- PRICING -->
-    <section class="section" id="pricing" hidden>
-      <div class="container">
-        <header class="section__head">
-          <p class="eyebrow">الباقات</p>
-          <h2>اختار الباقة المناسبة لنشاطك</h2>
-          <p class="muted">كل الباقات قابلة للتخصيص حسب احتياجك.</p>
-        </header>
-        <div class="grid grid--3 pricing" id="pricingGrid"></div>
       </div>
     </section>
 
@@ -157,38 +180,37 @@
       </div>
     </section>
 
+    <!-- CTA band -->
+    <section class="cta-band">
+      <div class="container cta-band__inner">
+        <div>
+          <h2>جاهز تكبّر نشاطك؟</h2>
+          <p>ابعتلنا رسالة دلوقتي ونرد عليك بخطة مبدئية لنشاطك.</p>
+        </div>
+        <div class="cta-band__actions">
+          <a href="#contact" class="btn btn--wa btn--lg" data-wa><svg viewBox="0 0 32 32" width="20" height="20" aria-hidden="true"><use href="#i-wa"/></svg>واتساب</a>
+          <a href="#contact" class="btn btn--light btn--lg" data-call><svg width="20" height="20" aria-hidden="true"><use href="#i-phone"/></svg>اتصل بينا</a>
+        </div>
+      </div>
+    </section>
+
     <!-- CONTACT -->
-    <section class="section section--alt" id="contact">
+    <section class="section" id="contact">
       <div class="container contact">
         <div class="contact__info">
           <p class="eyebrow">تواصل معنا</p>
-          <h2>جاهز تبدأ؟ احجز استشارتك المجانية</h2>
-          <p class="lead">سيب بياناتك وهنتواصل معاك خلال يوم عمل بخطة مبدئية لنشاطك.</p>
-          <ul class="contact__list" id="contactList"></ul>
-          <div class="socials" id="socials"></div>
+          <h2>احجز استشارتك المجانية</h2>
+          <p class="lead">اختار الطريقة الأسهل ليك:</p>
+          <div class="contact-cards" id="contactCards"></div>
         </div>
         <form class="card form" id="contactForm" novalidate>
-          <div class="form__row">
-            <label>الاسم *<input name="name" required maxlength="120" autocomplete="name"></label>
-            <label>رقم الموبايل<input name="phone" type="tel" inputmode="tel" maxlength="40" autocomplete="tel" dir="ltr"></label>
-          </div>
-          <div class="form__row">
-            <label>البريد الإلكتروني<input name="email" type="email" maxlength="160" autocomplete="email" dir="ltr"></label>
-            <label>اسم النشاط / الشركة<input name="company" maxlength="160" autocomplete="organization"></label>
-          </div>
-          <div class="form__row">
-            <label>الخدمة المطلوبة<select name="service" id="serviceSelect"><option value="">اختار خدمة</option></select></label>
-            <label>الميزانية الشهرية<select name="budget">
-              <option value="">اختار</option>
-              <option>أقل من 5,000 ج.م</option>
-              <option>5,000 – 15,000 ج.م</option>
-              <option>15,000 – 50,000 ج.م</option>
-              <option>أكثر من 50,000 ج.م</option>
-            </select></label>
-          </div>
-          <label>رسالتك<textarea name="message" rows="4" maxlength="4000" placeholder="احكيلنا عن نشاطك وأهدافك"></textarea></label>
+          <h3 class="form__title">أو سيب بياناتك ونكلمك إحنا</h3>
+          <label>الاسم *<input name="name" required maxlength="120" autocomplete="name" placeholder="اسمك"></label>
+          <label>رقم الموبايل *<input name="phone" type="tel" inputmode="tel" maxlength="40" autocomplete="tel" dir="ltr" placeholder="01xxxxxxxxx" required></label>
+          <label>محتاج إيه؟<select name="service" id="serviceSelect"><option value="">اختار باقة أو خدمة</option></select></label>
+          <label>رسالتك (اختياري)<textarea name="message" rows="3" maxlength="4000" placeholder="اسم نشاطك وأي تفاصيل حابب تقولها"></textarea></label>
           <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
-          <button class="btn btn--primary btn--block" type="submit">إرسال الطلب</button>
+          <button class="btn btn--primary btn--block btn--lg" type="submit">إرسال</button>
           <p class="form__msg" id="contactMsg" role="status" aria-live="polite"></p>
         </form>
       </div>
@@ -198,10 +220,21 @@
   <footer class="footer">
     <div class="container footer__inner">
       <div class="footer__brand">
-        <img src="/assets/wordmark.png" alt="NEXORA Digital Marketing" width="270" height="90" loading="lazy">
+        <img src="/assets/wordmark.png" alt="NEXORA Digital Marketing" width="240" height="80" loading="lazy">
+        <p class="muted">وكالة تسويق رقمي متكاملة — سوشيال ميديا، تصميم، إعلانات ممولة.</p>
+      </div>
+      <div class="footer__col">
+        <h4>روابط سريعة</h4>
+        <a href="#services">الخدمات</a>
+        <a href="#pricing">الباقات والأسعار</a>
+        <a href="#faq">الأسئلة الشائعة</a>
+        <a href="#contact">تواصل معنا</a>
+      </div>
+      <div class="footer__col" id="footerContact">
+        <h4>تواصل</h4>
       </div>
       <form class="newsletter" id="newsletterForm" novalidate>
-        <label for="nlEmail">اشترك في نشرتنا لأحدث نصائح التسويق</label>
+        <h4><label for="nlEmail">نصايح تسويق على إيميلك</label></h4>
         <div class="newsletter__row">
           <input id="nlEmail" name="email" type="email" placeholder="بريدك الإلكتروني" required dir="ltr">
           <button class="btn btn--primary btn--sm" type="submit">اشترك</button>
@@ -215,10 +248,37 @@
     </div>
   </footer>
 
+  <!-- Mobile quick-action bar -->
+  <div class="mbar" id="mbar" hidden>
+    <a href="#" class="mbar__call" id="mbarCall"><svg aria-hidden="true"><use href="#i-phone"/></svg>اتصال</a>
+    <a href="#" class="mbar__wa" id="mbarWa" target="_blank" rel="noopener"><svg viewBox="0 0 32 32" aria-hidden="true"><use href="#i-wa"/></svg>واتساب</a>
+  </div>
+
   <a class="wa-float" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="تواصل عبر واتساب" hidden>
-    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.7c-2 0-4-.5-5.7-1.6l-.4-.2-3.9 1 1-3.8-.3-.4A10.7 10.7 0 1 1 16 26.7zm5.9-8c-.3-.2-1.9-1-2.2-1s-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7 0a8.8 8.8 0 0 1-4.4-3.8c-.3-.6.3-.5 1-1.7.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6 0-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.6 5.8 5 2.1 1 3 1 4 .8.7-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5l-.6-.3z"/></svg>
+    <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><use href="#i-wa"/></svg>
   </a>
 
-  <script src="/js/site.js" defer></script>
+  <!-- Icon sprite -->
+  <svg width="0" height="0" class="sprite" aria-hidden="true">
+    <defs>
+      <symbol id="i-wa" viewBox="0 0 32 32"><path fill="currentColor" d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.7c-2 0-4-.5-5.7-1.6l-.4-.2-3.9 1 1-3.8-.3-.4A10.7 10.7 0 1 1 16 26.7zm5.9-8c-.3-.2-1.9-1-2.2-1s-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7 0a8.8 8.8 0 0 1-4.4-3.8c-.3-.6.3-.5 1-1.7.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6 0-.9.4-.3.3-1.2 1.1-1.2 2.8s1.2 3.2 1.4 3.5c.2.2 2.4 3.6 5.8 5 2.1 1 3 1 4 .8.7-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5l-.6-.3z"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+      <symbol id="i-fb" viewBox="0 0 24 24"><path fill="currentColor" d="M14 8.5V6.8c0-.8.2-1.3 1.4-1.3H17V2.2c-.3 0-1.3-.2-2.5-.2-2.5 0-4.2 1.5-4.2 4.3v2.2H7.5V12h2.8v10H14V12h2.8l.4-3.5H14z"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></g></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/><path d="M15 8h4v4"/></g></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></g></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></g></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></symbol>
+      <symbol id="i-social" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 6h4"/><circle cx="12" cy="17.5" r="1"/><path d="M9.5 10.5l1.8 1.8 3.2-3.3"/></g></symbol>
+      <symbol id="i-ads" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></g></symbol>
+      <symbol id="i-brand" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 10-10c0 2.8-2.2 4-4 4h-2a2 2 0 0 0-1.5 3.3c.4.5.5 1 .5 1.4 0 .8-1.3 1.3-3 1.3z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="7" r="1.2" fill="currentColor"/><circle cx="16" cy="8.5" r="1.2" fill="currentColor"/></g></symbol>
+      <symbol id="i-web" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><path d="M9 14l-2 2 2 2M15 14l2 2-2 2"/></g></symbol>
+      <symbol id="i-seo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="7"/><path d="M21 21l-5.5-5.5"/><path d="M7.5 12l2-2 1.5 1.5 2.5-2.5"/></g></symbol>
+      <symbol id="i-content" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></g></symbol>
+    </defs>
+  </svg>
+
+  <script src="/js/site.js?v=2" defer></script>
 </body>
 </html>

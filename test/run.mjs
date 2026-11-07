@@ -24,7 +24,7 @@ async function call(method, path, body, opts = {}) {
 
 console.log('Public');
 let r = await call('GET', '/api/health'); ok(r.s === 200 && r.d.db === true, 'health');
-r = await call('GET', '/api/content'); ok(r.s === 200 && r.d.services.length === 6 && r.d.faqs.length === 5 && r.d.packages.length === 3, 'content seeded');
+r = await call('GET', '/api/content'); ok(r.s === 200 && r.d.services.length === 6 && r.d.faqs.length === 7 && r.d.packages[0].price === '3,500' && r.d.settings.whatsapp === '201117543009' && r.d.packages.length === 3, 'content seeded');
 ok(!('setup_code_hash' in r.d.settings), 'no private keys in content');
 r = await call('GET', '/'); ok(r.s === 200 && r.h.get('content-security-policy')?.includes("script-src 'self'"), 'home + CSP');
 r = await call('GET', '/admin'); ok(r.s === 307, '/admin redirects to /admin/');

@@ -2,7 +2,7 @@
 // and a static-assets fake that mimics Cloudflare's default html_handling.
 import { DatabaseSync } from 'node:sqlite';
 import { createServer } from 'node:http';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import worker from '../src/worker.js';
 
@@ -20,7 +20,7 @@ class Stmt {
 
 export function makeDb() {
   const db = new DatabaseSync(':memory:');
-  db.exec(readFileSync(join(ROOT, 'migrations/0001_init.sql'), 'utf8'));
+  for (const f of readdirSync(join(ROOT, 'migrations')).filter((x) => x.endsWith('.sql')).sort()) db.exec(readFileSync(join(ROOT, 'migrations', f), 'utf8'));
   return {
     raw: db,
     prepare: (sql) => new Stmt(db, sql),

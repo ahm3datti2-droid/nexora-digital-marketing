@@ -133,7 +133,7 @@
     services: {
       title: 'الخدمات', singular: 'خدمة', main: 'title',
       fields: [
-        { name: 'icon', label: 'أيقونة (إيموجي)', default: '🚀' },
+        { name: 'icon', label: 'الأيقونة', type: 'select', default: 'social', options: [['social', 'سوشيال ميديا'], ['ads', 'إعلانات'], ['brand', 'تصميم وهوية'], ['web', 'مواقع'], ['seo', 'بحث SEO'], ['content', 'كتابة محتوى'], ['chart', 'نمو / تقارير'], ['target', 'استهداف'], ['shield', 'حماية / ثقة'], ['bolt', 'سرعة']] },
         { name: 'title', label: 'اسم الخدمة', required: true },
         { name: 'description', label: 'الوصف', type: 'textarea', full: true },
         { name: 'features', label: 'المميزات', type: 'textarea', full: true, hint: 'كل ميزة في سطر' },
@@ -158,7 +158,7 @@
       title: 'الباقات', singular: 'باقة', main: 'name',
       fields: [
         { name: 'name', label: 'اسم الباقة', required: true },
-        { name: 'price', label: 'السعر', placeholder: 'مثال: 5,000 ج.م', hint: 'سيبه فاضي ليظهر "السعر حسب احتياجك"' },
+        { name: 'price', label: 'السعر بالجنيه', placeholder: 'مثال: 5,000', hint: 'اكتب الرقم بس (هيظهر جنبه ج.م). سيبه فاضي ليظهر "السعر حسب احتياجك"' },
         { name: 'period', label: 'المدة', placeholder: 'شهريًا' },
         { name: 'description', label: 'وصف قصير' },
         { name: 'features', label: 'المميزات', type: 'textarea', full: true, hint: 'كل ميزة في سطر' },
@@ -200,7 +200,7 @@
       if (!items.length) { list.replaceChildren(el('div', { class: 'empty', text: 'لا يوجد عناصر بعد. اضغط "إضافة" للبدء.' })); return; }
       list.replaceChildren(...items.map((r) => el('div', { class: 'item' },
         el('div', { class: 'item__head' },
-          el('span', { class: 'item__title' }, (r.icon ? r.icon + ' ' : '') + r[cfg.main]),
+          el('span', { class: 'item__title' }, (r.icon && !/^[a-z]+$/.test(r.icon) ? r.icon + ' ' : '') + r[cfg.main]),
           Number(r.active) ? null : el('span', { class: 'pill pill--off', text: 'مخفي' })),
         cfg.sub(r) ? el('p', { class: 'item__text muted', text: String(cfg.sub(r)).slice(0, 220) }) : null,
         el('div', { class: 'item__actions' },
@@ -301,7 +301,7 @@
     { name: 'about_text', label: 'نص "من نحن"', type: 'textarea', full: true },
     { name: 'stats', label: 'أرقام الإنجازات (اختياري)', type: 'textarea', full: true, hint: 'كل سطر: الرقم|الوصف — مثال: 120+|عميل سعيد. سيبه فاضي لإخفاء القسم.' },
     { name: 'phone', label: 'رقم الهاتف', ltr: true, placeholder: '+20 100 000 0000' },
-    { name: 'whatsapp', label: 'رقم واتساب (بالكود الدولي)', ltr: true, placeholder: '201000000000', hint: 'يظهر زر واتساب العائم لما تكتبه' },
+    { name: 'whatsapp', label: 'رقم واتساب', ltr: true, placeholder: '01xxxxxxxxx', hint: 'أزرار واتساب في الموقع كله بتشتغل على الرقم ده' },
     { name: 'email', label: 'البريد الإلكتروني', ltr: true },
     { name: 'address', label: 'العنوان' },
     { name: 'working_hours', label: 'مواعيد العمل', placeholder: 'السبت – الخميس، 10ص – 6م' },
